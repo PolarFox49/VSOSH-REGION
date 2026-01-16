@@ -1,9 +1,8 @@
-# Конфигурация для высокочастотной торговли (High-Frequency Trading)
 vulnerable_server:
   host: "127.0.0.1"
   port: 8888
   secret_password: "TraderPass123!"
-  sleep_delay: 0.001  # 1 мс задержка для имитации HFT
+  sleep_delay: 0.001  
   endpoints:
     info: "/info"
     check: "/check"
@@ -25,10 +24,10 @@ secure_server:
     market_data: "/market_data"
     execute_trade: "/execute_trade"
   security:
-    # Время ответа для HFT (микросекунды)
+ 
     min_response_time_ms: 0.1
     max_response_time_ms: 0.5
-    # Лимиты для HFT (высокие значения)
+   
     rate_limit_per_ip: 10000
     connection_limit: 100
     param_max_length: 50
@@ -37,7 +36,7 @@ secure_server:
     salt_length: 64
     max_failed_attempts: 3
     account_lock_minutes: 15
-    # Дополнительные параметры для HFT
+    
     use_connection_pooling: true
     max_query_time_ms: 1
     enable_query_cache: true
@@ -48,7 +47,7 @@ attack:
   sleep_threshold: 0.002  # 2 мс порог для HFT
   timeout: 1
   charset: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+-=[]{}|;:,.<>?/~`"
-  # Настройки для HFT атак
+ 
   request_batch_size: 100
   parallel_requests: 10
   statistical_analysis: true
