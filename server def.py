@@ -15,22 +15,22 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
     
     SECRET_PASSWORD = "SecureTrader321!"
     
-    # Конфигурация безопасности для HFT
+    
     SECURITY_CONFIG = {
-        # Время ответа для HFT (микросекунды)
+        
         'min_response_time_ns': 100000,  # 100 микросекунд
         'max_response_time_ns': 500000,  # 500 микросекунд
-        # Лимиты для HFT
+       
         'rate_limit_per_ip': 10000,
         'connection_limit': 100,
         'param_max_length': 50,
         'max_password_length': 256,
-        # Защита от timing атак
+       
         'constant_time_operations': True,
         'normalize_response_time': True,
         'random_time_jitter': True,
         'jitter_range_ns': 50000,  # 50 микросекунд
-        # Дополнительная защита
+       
         'use_prepared_statements': True,
         'query_timeout_ms': 1,
         'enable_rate_limiting': True,
@@ -39,7 +39,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         'max_consecutive_failures': 3
     }
     
-    # Глобальные структуры для защиты
+   
     _rate_limiter = {}
     _connection_counter = 0
     _connection_lock = threading.Lock()
@@ -49,7 +49,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
     _request_history = {}
     
     def init_db(self):
-        """Инициализация защищенной БД для HFT"""
+       
         conn = sqlite3.connect(':memory:', timeout=0.001)  # 1 мс timeout
         cursor = conn.cursor()
         
@@ -81,13 +81,13 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
             )
         ''')
         
-        # Безопасное хранение паролей
+       
         def hash_password(password, salt=None):
             if salt is None:
                 salt = secrets.token_hex(32)
             return hashlib.sha512((password + salt).encode()).hexdigest(), salt
         
-        # Создание безопасных записей
+        
         pass_hash, pass_salt = hash_password(self.SECRET_PASSWORD)
         api_hash, api_salt = hash_password('API-KEY-ADMIN-123')
         
@@ -109,7 +109,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         return conn
     
     def _normalize_response_time(self, start_time_ns):
-        """Нормализация времени ответа для защиты от timing атак в HFT"""
+       
         if not self.SECURITY_CONFIG['normalize_response_time']:
             return
         
@@ -127,7 +127,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
                 time.sleep(sleep_time)
     
     def _check_rate_limit(self, client_ip):
-        """Проверка рейт-лимита для HFT"""
+       
         if not self.SECURITY_CONFIG['enable_rate_limiting']:
             return True
         
@@ -136,7 +136,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         if client_ip not in self._rate_limiter:
             self._rate_limiter[client_ip] = []
         
-        # Очистка старых записей (1 секунда для HFT)
+      
         self._rate_limiter[client_ip] = [
             t for t in self._rate_limiter[client_ip] 
             if current_time - t < 1
@@ -150,7 +150,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         return True
     
     def _check_blacklist(self, client_ip):
-        """Проверка черного списка IP"""
+       
         if not self.SECURITY_CONFIG['block_malicious_ips']:
             return True
         
@@ -164,11 +164,11 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         return True
     
     def _sanitize_hft_input(self, input_str):
-        """Санкционирование ввода для HFT (строгая валидация)"""
+       
         if not input_str or len(input_str) > self.SECURITY_CONFIG['param_max_length']:
             return None
         
-        # Блокировка опасных SQL конструкций для HFT
+       
         dangerous_patterns = [
             r'(?i)sleep\s*\([^)]*\)',
             r'(?i)benchmark\s*\([^)]*\)',
@@ -185,7 +185,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
             r';\s*',
             r'1\s*=\s*1',
             r'1\s*=\s*0',
-            # Паттерны для timing атак
+            
             r'substr\s*\([^)]*\)',
             r'ascii\s*\([^)]*\)',
             r'char\s*\([^)]*\)',
@@ -197,14 +197,13 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         for pattern in dangerous_patterns:
             safe_input = re.sub(pattern, '', safe_input, flags=re.IGNORECASE)
         
-        # Дополнительная валидация для HFT параметров
+       
         if re.search(r'[<>()\'"\\;]', safe_input):
             return None
         
         return safe_input if safe_input.strip() else None
     
     def _execute_secure_hft_query(self, query, params=()):
-        """Безопасное выполнение запросов для HFT"""
         conn = None
         try:
             conn = sqlite3.connect(':memory:', timeout=0.001)
@@ -213,7 +212,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
             if self.SECURITY_CONFIG['use_prepared_statements']:
                 cursor.execute(query, params)
             else:
-                # Fallback с дополнительной проверкой
+                
                 cursor.execute(query)
             
             result = cursor.fetchall()
@@ -226,7 +225,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
                 conn.close()
     
     def _log_attack(self, message):
-        """Логирование атак в HFT системе"""
+       
         if not self.SECURITY_CONFIG['log_suspicious_activity']:
             return
         
@@ -241,24 +240,24 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
             }
             self._attack_log.append(log_entry)
             
-            # Ограничение размера лога
+           
             if len(self._attack_log) > 10000:
                 self._attack_log = self._attack_log[-10000:]
             
-            # Обнаружение аномальной активности
+          
             recent_attacks = [e for e in self._attack_log 
                             if time.time_ns() - e['timestamp'] < 1e9]  # 1 секунда
             
             if len(recent_attacks) > 100:
-                # Блокировка IP при обнаружении атаки
+               
                 self._ip_blacklist[client_ip] = time.time() + 300  # 5 минут
     
     def _constant_time_compare(self, val1, val2):
-        """Сравнение с постоянным временем выполнения"""
+       
         if not self.SECURITY_CONFIG['constant_time_operations']:
             return val1 == val2
         
-        # Реализация constant-time сравнения
+        
         if len(val1) != len(val2):
             return False
         
@@ -269,16 +268,16 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         return result == 0
     
     def do_GET(self):
-        """Обработка запросов с защитой для HFT"""
+       
         start_time_ns = time.perf_counter_ns()
         client_ip = self.client_address[0]
         
-        # Проверка черного списка
+        
         if not self._check_blacklist(client_ip):
             self.send_error(429, "IP blocked - Suspicious activity detected")
             return
         
-        # Проверка рейт-лимита
+       
         if not self._check_rate_limit(client_ip):
             self.send_error(429, "Rate limit exceeded")
             return
@@ -319,7 +318,6 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
                         })
                         return
                     
-                    # Всегда константное время для HFT
                     result = {
                         'success': True,
                         'execution_time_ns': secrets.randbelow(400000) + 100000,
@@ -332,11 +330,11 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
                     self.send_error(400, 'No condition provided')
             
             elif parsed.path == '/market_data':
-                # Безопасный endpoint для рыночных данных
+               
                 params = parse_qs(parsed.query)
                 symbol = self._sanitize_hft_input(params.get('symbol', ['AAPL'])[0])
                 
-                # Генерация безопасных рыночных данных
+                
                 market_data = {
                     'symbol': symbol or 'AAPL',
                     'price': 150.25 + secrets.randbelow(100) / 100,
@@ -348,7 +346,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
                 self.send_hft_json(market_data)
             
             elif parsed.path == '/execute_trade':
-                # Защищенный endpoint для выполнения сделок
+             
                 params = parse_qs(parsed.query)
                 api_key = self._sanitize_hft_input(params.get('api_key', [''])[0])
                 symbol = self._sanitize_hft_input(params.get('symbol', [''])[0])
@@ -358,7 +356,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
                     self.send_hft_json({'error': 'Missing parameters'})
                     return
                 
-                # Безопасная проверка API ключа с constant-time
+               
                 query = "SELECT api_key_hash FROM traders WHERE username = ?"
                 success, result = self._execute_secure_hft_query(query, ('admin',))
                 
@@ -398,7 +396,7 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
                     })
             
             elif parsed.path == '/test_secure':
-                # Тестовый endpoint с защитой
+               
                 test_data = {
                     'secure': True,
                     'timestamp_ns': time.time_ns(),
@@ -434,7 +432,6 @@ class HFTSecureSQLiServer(BaseHTTPRequestHandler):
         pass
 
 def run_hft_secure_server(port=8889):
-    """Запуск защищенного HFT сервера"""
     import socket
     
     def check_port(port):
@@ -447,18 +444,18 @@ def run_hft_secure_server(port=8889):
             return False
     
     if not check_port(port):
-        print(f"⚠️  Порт {port} занят! Пробую порт {port + 1}")
+        print(f"  Порт {port} занят! Пробую порт {port + 1}")
         port += 1
     
     try:
         server = HTTPServer(('127.0.0.1', port), HFTSecureSQLiServer)
         
         print("="*80)
-        print("🛡️  HFT ЗАЩИЩЕННЫЙ ОТ TIMING-BASED SQL INJECTION")
+        print("  HFT ЗАЩИЩЕННЫЙ ОТ TIMING-BASED SQL INJECTION")
         print("="*80)
-        print(f"📍 Адрес: http://127.0.0.1:{port}")
+        print(f" Адрес: http://127.0.0.1:{port}")
         
-        print("\n🛡️  МЕХАНИЗМЫ ЗАЩИТЫ ДЛЯ HFT:")
+        print("\n  МЕХАНИЗМЫ ЗАЩИТЫ ДЛЯ HFT:")
         print("  1. Constant-time операции (постоянное время выполнения)")
         print("  2. Нормализация времени ответа (100-500 микросекунд)")
         print("  3. Случайный джиттер времени ответа")
@@ -467,21 +464,14 @@ def run_hft_secure_server(port=8889):
         print("  6. Рейт-лимитирование (10,000 запросов/секунду)")
         print("  7. Черный список IP при обнаружении атак")
         print("  8. Мониторинг аномальной активности")
-        
-        print("\n📡 ЗАЩИЩЕННЫЕ HFT ENDPOINTS:")
-        print("  GET /info - информация о системе")
-        print("  GET /check?condition=SQL - защищенная проверка")
-        print("  GET /market_data?symbol=X - рыночные данные")
-        print("  GET /execute_trade - выполнение сделок")
-        print("  GET /security_log - логи безопасности (localhost)")
-        print("  GET /test_secure - тестовый endpoint")
-        
-        print("\n✅ ВСЕ TIMING АТАКИ БЛОКИРОВАНЫ")
+        print("\n ЗАЩИЩЕННЫЕ HFT ENDPOINTS:")
+
+        print("\nВСЕ TIMING АТАКИ БЛОКИРОВАНЫ")
         print("   • SLEEP/BENCHMARK атаки не работают")
         print("   • Blind SQL injection невозможен")
         print("   • Подбор параметров через timing блокирован")
         print("="*80)
-        print("\n🚀 HFT сервер запущен. Для остановки: Ctrl+C")
+        print("\n HFT сервер запущен. Для остановки: Ctrl+C")
         print("="*80)
         
         server.serve_forever()
